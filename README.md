@@ -4,7 +4,7 @@ This project implements a fully connected neural network from scratch using only
 
 ### Features
 - **Customizable Architecture:** Define the number of layers and neurons per layer.
-- **Activation Functions:** Supports ReLU, Sigmoid, and Tanh activation functions.
+- **Activation Functions:** Supports ReLU, Sigmoid, Tanh and Softmax activation functions.
 - **Loss Functions:** Implements Mean Squared Error (MSE) and Cross-Entropy Loss.
 - **Training Loop:** Includes forward pass, backpropagation, and weight updates.
 - **Batch Gradient Descent:** Optimizes weights and biases using gradient descent.

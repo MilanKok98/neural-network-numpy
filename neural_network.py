@@ -176,9 +176,8 @@ class NeuralNetwork:
         m = y_true.shape[0]  # Number of samples
         
         # Calculate output layer error
-        # Output layer gradient (special handling for softmax + cross-entropy)
         if self.output_activation == 'softmax' and self.loss == 'cross_entropy':
-            error = (self.layer_outputs[-1] - y_true) / m  # Simplified gradient
+            error = (self.layer_outputs[-1] - y_true) / m  
         elif self.loss == 'cross_entropy' and self.activation == 'sigmoid':
             error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) / m
         else:
