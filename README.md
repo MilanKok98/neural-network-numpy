@@ -8,7 +8,7 @@ This project implements a fully connected neural network from scratch using only
 - **Loss Functions:** Implements Mean Squared Error (MSE) and Cross-Entropy Loss.
 - **Training Loop:** Includes forward pass, backpropagation, and weight updates.
 - **Batch Gradient Descent:** Optimizes weights and biases using gradient descent.
-- **Basic Data Preprocessing:** Includes normalization and one-hot encoding utilities.
+- **Basic Data Preprocessing:** Includes normalization, splitting into training and testing sets and creating evaluation metrics.
 
 ### Dependencies
 - Python 3.x

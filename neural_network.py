@@ -33,24 +33,29 @@ Version: 1.0
 """
 
 # Import numpy
-import numpy
+import numpy as np
 
 class NeuralNetwork:
-    def __init__(self, layers: list, activation:'relu', loss='mse'):
+    def __init__(self, layers: list, activation:'relu', loss='mse', random_seed=None):
         """
         Initialization of the Neural Network
 
         Args:
-            layers (list): Takes a list of integers specifying the neurons per layer.
+            - layers (list): Takes a list of integers specifying the neurons per layer.
                 Example: [input_size, hidden_size, ..., output_size]
-            activation (str): Activation function ('sigmoid', 'relu', or 'tanh')
-            loss (str): Loss type ('mse' or 'cross_entropy')
+            - activation (str): Activation function ('sigmoid', 'relu', or 'tanh')
+            - loss (str): Loss type ('mse' or 'cross_entropy')
+            - random_seed (int): Sets the random seed for reproducability.
         """
         self.layers = layers
         self.activation = activation
         self.loss = loss
         self.weights = []
         self.bias = []
+
+        # Set random seed for reproducibility
+        if random_seed is not None:
+            np.random.seed(random_seed)
 
         # Initialize the weights and biases (He initialization for ReLU and Xavier for others)
         for i in range(len(layers) - 1):
@@ -159,18 +164,17 @@ class NeuralNetwork:
             - learning_rate: The rate of which the neural network will adjust the weights and biases
         """
         gradients = []
-        m = y_true.shape[0] # The number of samples
-
-        # Output layer error
+        m = y_true.shape[0]  # Number of samples
+        
+        # Calculate output layer error
         if self.loss == 'cross_entropy' and self.activation == 'sigmoid':
-            # Shortcut for cross-entropy + sigmoid
-            error = (self.layer_outputs[-1] - y_true) / m
+            error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) / m
         else:
             if self.loss == 'mse':
-                error = (self.layer_outputs[-1] - y_true) * self._activate_derivative(self.layer_outputs[-1])
+                error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) * self._activate_derivative(self.layer_outputs[-1]) / m
             elif self.loss == 'cross_entropy':
-                error = (self.layer_outputs[-1] - y_true)
-
+                error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) / m
+        
         # Backpropagate through layers
         for i in reversed(range(len(self.weights))):
             # Gradient for weights and biases
@@ -186,7 +190,7 @@ class NeuralNetwork:
         # Update weights and biases
         for i in range(len(self.weights)):
             self.weights[i] -= learning_rate * gradients[len(self.weights)-1-i][0]
-            self.biases[i] -= learning_rate * gradients[len(self.weights)-1-i][1]
+            self.bias[i] -= learning_rate * gradients[len(self.weights)-1-i][1]
 
 
     def train(self, X, y, epochs=1000, learning_rate=0.01, verbose=True):
@@ -218,6 +222,15 @@ class NeuralNetwork:
     def predict(self, X):
         """
         Make the predictions using the neural network for a given input.
+
+        Args: 
+            - X (np.array): Set of input values for the neural network.
+        """
+        return (self.forward(X) > 0.5).astype(int)
+
+    def predict_proba(self, X):
+        """
+        Return the probabilities of predictions made by the neural network.
 
         Args: 
             - X (np.array): Set of input values for the neural network.
