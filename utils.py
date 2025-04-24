@@ -97,8 +97,8 @@ def train_test_split(X: np.array,
         np.random.seed(random_state)
 
     # Convert the input to np.array
-    X = X.values
-    y = y.values
+    X = np.array(X)
+    y = np.array(y)
 
     # Check whether the input shapes match
     if len(X) != len(y):

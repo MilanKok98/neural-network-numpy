@@ -36,7 +36,7 @@ Version: 1.0
 import numpy as np
 
 class NeuralNetwork:
-    def __init__(self, layers: list, activation:'relu', loss='mse', random_seed=None):
+    def __init__(self, layers: list, activation='relu', output_activation=None, loss='mse', random_seed=None):
         """
         Initialization of the Neural Network
 
@@ -44,11 +44,13 @@ class NeuralNetwork:
             - layers (list): Takes a list of integers specifying the neurons per layer.
                 Example: [input_size, hidden_size, ..., output_size]
             - activation (str): Activation function ('sigmoid', 'relu', or 'tanh')
+            - output_activation (str): In case of multiclassification set the output_activation to 'softmax'
             - loss (str): Loss type ('mse' or 'cross_entropy')
             - random_seed (int): Sets the random seed for reproducability.
         """
         self.layers = layers
         self.activation = activation
+        self.output_activation = output_activation
         self.loss = loss
         self.weights = []
         self.bias = []
@@ -68,7 +70,7 @@ class NeuralNetwork:
             self.bias.append(np.zeros((1, layers[i+1])))
 
 
-    def _activate(self, z):
+    def _activate(self, z, is_output=False):
         """ 
         Apply the activation functions
 
@@ -84,7 +86,10 @@ class NeuralNetwork:
             - tanh: Hyperbolic tangent function:
                 https://en.wikipedia.org/wiki/Hyperbolic_functions
         """
-        if self.activation == 'relu':
+        if is_output and self.output_activation == 'softmax':
+            exp = np.exp(z - np.max(z, axis=1, keepdims=True))
+            return exp / np.sum(exp, axis=1, keepdims=True)
+        elif self.activation == 'relu':
             return np.maximum(0, z)
         elif self.activation == 'sigmoid':
             return 1 / (1 + np.exp(-z))
@@ -92,7 +97,7 @@ class NeuralNetwork:
             return np.tanh(z)
 
     
-    def _activate_derivative(self, z):
+    def _activate_derivative(self, z, is_output=False):
         """
         Calculates the derivative of the activation function. This will be used in the backward propagation
         part of the algorithm to adjust weights in a way that minimizes the loss function.
@@ -101,11 +106,14 @@ class NeuralNetwork:
             z (np.array): The weighted sum of inputs for a given layer, plus the bias term calculated in the forward
                 method during the forward pass in the network.
         """
+        if is_output and self.output_activation == 'softmax':
+            # Softmax derivative is handled directly in backprop (special case)
+            return 1
         if self.activation == 'relu':
             return (z > 0).astype(float)
         if self.activation == 'sigmoid':
             s = self._activate(z)
-            return s - (1 - s)
+            return s * (1 - s)
         if self.activation == 'tanh':
             return 1 - np.tanh(z)**2
 
@@ -146,7 +154,8 @@ class NeuralNetwork:
 
         for i in range(len(self.weights)):
             z = np.dot(self.layer_outputs[-1], self.weights[i]) + self.bias[i]
-            a = self._activate(z)
+            # Pass is_output=True for the final layer
+            a = self._activate(z, is_output=(i == len(self.weights)-1))
             self.layer_outputs.append(a)
 
         return self.layer_outputs[-1]
@@ -167,11 +176,14 @@ class NeuralNetwork:
         m = y_true.shape[0]  # Number of samples
         
         # Calculate output layer error
-        if self.loss == 'cross_entropy' and self.activation == 'sigmoid':
+        # Output layer gradient (special handling for softmax + cross-entropy)
+        if self.output_activation == 'softmax' and self.loss == 'cross_entropy':
+            error = (self.layer_outputs[-1] - y_true) / m  # Simplified gradient
+        elif self.loss == 'cross_entropy' and self.activation == 'sigmoid':
             error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) / m
         else:
             if self.loss == 'mse':
-                error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) * self._activate_derivative(self.layer_outputs[-1]) / m
+                error = 2 * (self.layer_outputs[-1] - y_true.reshape(-1,1)) * self._activate_derivative(self.layer_outputs[-1], is_output=True) / m
             elif self.loss == 'cross_entropy':
                 error = (self.layer_outputs[-1] - y_true.reshape(-1,1)) / m
         
@@ -187,10 +199,11 @@ class NeuralNetwork:
             if i > 0:
                 error = np.dot(error, self.weights[i].T) * self._activate_derivative(self.layer_outputs[i])
 
-        # Update weights and biases
+        # Update weights and biases (reverse the gradients list to match layer order)
+        gradients = gradients[::-1]
         for i in range(len(self.weights)):
-            self.weights[i] -= learning_rate * gradients[len(self.weights)-1-i][0]
-            self.bias[i] -= learning_rate * gradients[len(self.weights)-1-i][1]
+            self.weights[i] -= learning_rate * gradients[i][0]
+            self.bias[i] -= learning_rate * gradients[i][1]
 
 
     def train(self, X, y, epochs=1000, learning_rate=0.01, verbose=True):
@@ -226,7 +239,10 @@ class NeuralNetwork:
         Args: 
             - X (np.array): Set of input values for the neural network.
         """
-        return (self.forward(X) > 0.5).astype(int)
+        if self.layers[-1] == 1:
+            return (self.forward(X) > 0.5).astype(int)
+        else:
+            return np.argmax(self.forward(X), axis=1)
 
     def predict_proba(self, X):
         """
