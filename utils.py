@@ -32,7 +32,7 @@ class StandardScaler:
         Initialization of the standard scaler for scaling the data.
 
         Args:
-            None
+            - None
         """
         self.mean = None
         self.standard_deviation = None
@@ -78,6 +78,68 @@ class StandardScaler:
         """
 
         return self.fit(X).transform(X)
+
+
+class OneHotEncoder:
+    def __init__(self):
+        """
+        Initialize the OneHotEncoder
+
+        Args:
+            - None
+        """
+        self.mapping = {}
+        self.reverse_mapping = {}
+
+    def fit(self, data):
+        """
+        Fits the data to the mapping and stores the mapping result.
+
+        Args:
+            - data (array): takes a one dimensional array as input.
+        """
+        # Add the unique values in the data and assign the encoded value
+        for i, name in enumerate(np.unique(data)):
+            self.mapping[name] = i
+
+        # Create the reversed mapping to decode the values
+        self.reverse_mapping = {v: k for k, v in self.mapping.items()}
+
+        return self
+
+    def transform(self, data):
+        """
+        Transform the input data based on the mapping.
+
+        Args: 
+            - data (array): takes a one dimensional array as input.
+        """
+        # First encode the data
+        encoded = np.vectorize(self.mapping.get)(data)
+
+        # Apply the one hot encoding to get a vector of binary values
+        one_hot_encoded = np.eye(len(self.mapping))[encoded]
+
+        return one_hot_encoded
+
+    def fit_transform(self, data):
+        """
+        Create the mapping dictionary and transform the array, returning the output.
+
+        Args: 
+            - data (array): takes a one dimensional array as input.
+        """
+        return self.fit(data).transform(data)
+
+    def decode(self, data):
+        """
+        Decodes the output results of a model back to the original values.
+
+        Args:
+            - data (array): takes a one dimensional array as input.
+        """
+        return np.vectorize(self.reverse_mapping.get)(data)
+        
 
 
 def train_test_split(X: np.array,
