@@ -3,11 +3,13 @@ Utility functions for machine learning preprocessing and evaluation.
 
 This module provides:
 - StandardScaler: A class for standardizing features by removing mean and scaling to unit variance
+- OneHotEncoder: A class for one-hot encoding categorical features
 - train_test_split: A function to split data into random train and test subsets
 - accuracy_score: A function to compute classification accuracy
 
 Classes:
     StandardScaler: Feature standardization/normalization
+    OneHotEncoder: One-hot encoding for categorical features
 
 Functions:
     train_test_split(X, y, test_size, random_state) -> tuple
@@ -16,9 +18,11 @@ Functions:
         Compute classification accuracy
 
 Examples:
-    >>> from utils import StandardScaler, train_test_split, accuracy_score
+    >>> from utils import StandardScaler, OneHotEncoder, train_test_split, accuracy_score
     >>> scaler = StandardScaler()
     >>> X_scaled = scaler.fit_transform(X)
+    >>> encoder = OneHotEncoder()
+    >>> y_encoded = encoder.fit_transform(y)
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
     >>> acc = accuracy_score(y_true, y_pred)
 """
