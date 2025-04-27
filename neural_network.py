@@ -243,6 +243,7 @@ class NeuralNetwork:
         else:
             return np.argmax(self.forward(X), axis=1)
 
+
     def predict_proba(self, X):
         """
         Return the probabilities of predictions made by the neural network.
