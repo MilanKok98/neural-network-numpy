@@ -14,13 +14,25 @@ This project implements a fully connected neural network from scratch using only
 - Python 3.x
 - NumPy
 
+### Project Structure
+```
+neural_network_from_scratch/
+│── neural_network.py          # Main neural network implementation
+│── utils.py                   # Helper functions (normalization, encoding)
+│── README.md                  # Project documentation
+│── requirements.txt           # Dependencies
+│── examples/                  # Example scripts
+│   └── titanic_example.ipynb
+│   └── iris_example.ipynb
+```
+
 ### Future Improvements
 - Add momentum and adaptive learning rate optimizers (e.g., Adam, RMSprop).
 - Implement dropout and batch normalization.
 - Support for convolutional layers (CNNs).
 - Add visualization tools for loss tracking.
 
-Author:
+**Author:**
 - **Name:** Milan
 - **Github:** MilanKok98
 
